@@ -30,5 +30,4 @@ yarn-error.log*
 *.swo
 *~
 
-# optional: если используете Craco или подобное
 /craco.config.js.local
