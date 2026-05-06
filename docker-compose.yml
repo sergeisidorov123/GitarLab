@@ -7,6 +7,31 @@ services:
       - PYTHONUNBUFFERED=1
     command: uvicorn app.main:app --host 0.0.0.0 --port 8000 
 
+  catalog-service:
+    build: ./services/catalog-service
+    ports:
+      - "8001:8001"
+    environment:
+      - PYTHONUNBUFFERED=1
+      - DATABASE_URL=postgresql+asyncpg://postgres:postgres@catalog-db:5432/catalog
+    depends_on:
+      catalog-db:
+        condition: service_healthy
+
+  catalog-db:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: catalog
+    volumes:
+      - catalog_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
   frontend:
     build:
       context: ./frontend
@@ -15,3 +40,7 @@ services:
       - "3000:3000"
     depends_on:
       - tuner-service
+      - catalog-service
+
+volumes:
+  catalog_pgdata:
