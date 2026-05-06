@@ -3,101 +3,154 @@ import { useTuner } from '../hooks/useTuner';
 
 const Tuner = () => {
   const { isListening, result, error, start, stop } = useTuner();
-  
+
   return (
-    <div style={{ textAlign: 'center', padding: '20px' }}>
-      <h1>🎸 Guitar Tuner</h1>
-      
+    <div className="card">
+      <h2 className="card-title">🎸 Guitar Tuner</h2>
+      <p className="card-subtitle">
+        Tune your guitar strings with precision
+      </p>
+
       {error && (
-        <div style={{ color: 'red', margin: '10px' }}>
-          {error}
+        <div className="error-message">
+          <strong>⚠️ Error:</strong> {error}
         </div>
       )}
-      
-      {!isListening ? (
-        <button onClick={start} style={styles.button}>
-          🎤 Start
-        </button>
-      ) : (
-        <button onClick={stop} style={{...styles.button, backgroundColor: '#f44336'}}>
-          ⏹️ Stop
-        </button>
-      )}
-      
+
+      <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
+        {!isListening ? (
+          <button onClick={start} className="btn">
+            🎤 Start Tuning
+          </button>
+        ) : (
+          <button onClick={stop} className="btn btn-danger">
+            ⏹️ Stop Tuning
+          </button>
+        )}
+      </div>
+
       {result && result.note && (
-        <div style={{ marginTop: '30px' }}>
-          <div style={{ fontSize: '80px', fontWeight: 'bold' }}>
+        <div style={{ textAlign: 'center' }}>
+          <div style={{
+            fontSize: '6rem',
+            fontWeight: 'bold',
+            color: result.is_in_tune ? '#4CAF50' : '#FF9800',
+            marginBottom: '1rem',
+            textShadow: '0 2px 4px rgba(0, 0, 0, 0.1)'
+          }}>
             {result.note}
           </div>
-          
-          <div style={{ fontSize: '24px', color: '#666' }}>
+
+          <div style={{
+            fontSize: '1.5rem',
+            color: '#666',
+            marginBottom: '2rem',
+            fontWeight: '500'
+          }}>
             {result.string}
           </div>
-          
-          <div style={{ margin: '20px auto', width: '300px' }}>
-            <div style={styles.meterBackground}>
+
+          <div style={{ margin: '2rem auto', maxWidth: '400px' }}>
+            <div style={{
+              width: '100%',
+              height: '24px',
+              backgroundColor: '#e0e0e0',
+              borderRadius: '12px',
+              overflow: 'hidden',
+              position: 'relative'
+            }}>
               <div style={{
-                ...styles.meterFill,
-                width: `${Math.min(100, Math.abs(result.cents))}%`,
-                transform: `translateX(${result.cents < 0 ? '0%' : '100%'})`,
-                backgroundColor: result.is_in_tune ? '#4CAF50' : '#FF9800'
+                position: 'absolute',
+                left: '50%',
+                top: '0',
+                bottom: '0',
+                width: '2px',
+                backgroundColor: '#333',
+                zIndex: 2
+              }} />
+              <div style={{
+                height: '100%',
+                width: `${Math.min(50, Math.abs(result.cents) * 0.5)}%`,
+                backgroundColor: result.is_in_tune ? '#4CAF50' : '#FF9800',
+                position: 'absolute',
+                left: result.cents < 0 ? `${50 - Math.min(50, Math.abs(result.cents) * 0.5)}%` : '50%',
+                transition: 'all 0.1s ease'
               }} />
             </div>
-            
-            <div style={styles.meterLabels}>
-              <span>⬇️</span>
-              <span>✓</span>
-              <span>⬆️</span>
+
+            <div style={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              marginTop: '0.5rem',
+              fontSize: '0.9rem',
+              color: '#666'
+            }}>
+              <span>⬇️ Too Low</span>
+              <span style={{
+                color: result.is_in_tune ? '#4CAF50' : '#666',
+                fontWeight: result.is_in_tune ? 'bold' : 'normal'
+              }}>
+                ✓ In Tune
+              </span>
+              <span>⬆️ Too High</span>
             </div>
           </div>
-          
-          <div style={{ fontSize: '18px', marginTop: '20px' }}>
-            {result.suggestion}
+
+          <div style={{
+            fontSize: '1.2rem',
+            marginBottom: '1rem',
+            color: result.is_in_tune ? '#4CAF50' : '#FF9800',
+            fontWeight: '600'
+          }}>
+            {result.suggestion === 'good' ? '🎯 Perfect!' :
+             result.suggestion === 'up' ? '⬆️ Tune Up' :
+             result.suggestion === 'down' ? '⬇️ Tune Down' :
+             result.suggestion === 'a bit off' ? '🎵 Almost There' :
+             result.suggestion === 'louder' ? '🔊 Play Louder' :
+             result.suggestion}
           </div>
-          
-          <div style={{ fontSize: '14px', color: '#888', marginTop: '10px' }}>
-            {result.frequency} Hz | {Math.abs(result.cents)} cents
+
+          <div style={{
+            fontSize: '0.9rem',
+            color: '#888',
+            background: 'rgba(0, 0, 0, 0.05)',
+            padding: '0.75rem',
+            borderRadius: '8px',
+            display: 'inline-block'
+          }}>
+            {result.frequency} Hz | {Math.abs(result.cents)} cents off
           </div>
         </div>
       )}
-      
+
       {isListening && !result?.note && (
-        <div style={{ marginTop: '30px', color: '#666' }}>
-          Играйте на гитаре...
+        <div style={{
+          textAlign: 'center',
+          color: '#666',
+          fontSize: '1.2rem',
+          marginTop: '2rem'
+        }}>
+          <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>🎸</div>
+          <p>Play a note on your guitar...</p>
+          <p style={{ fontSize: '0.9rem', color: '#888' }}>
+            Make sure your microphone is enabled
+          </p>
+        </div>
+      )}
+
+      {!isListening && !result && (
+        <div style={{
+          textAlign: 'center',
+          color: '#666',
+          fontSize: '1.1rem',
+          marginTop: '2rem'
+        }}>
+          <div style={{ fontSize: '4rem', marginBottom: '1rem', opacity: 0.5 }}>🎸</div>
+          <p>Click "Start Tuning" to begin tuning your guitar</p>
         </div>
       )}
     </div>
   );
-};
-
-const styles = {
-  button: {
-    padding: '15px 30px',
-    fontSize: '18px',
-    backgroundColor: '#4CAF50',
-    color: 'white',
-    border: 'none',
-    borderRadius: '5px',
-    cursor: 'pointer',
-    marginTop: '20px'
-  },
-  meterBackground: {
-    width: '100%',
-    height: '20px',
-    backgroundColor: '#ddd',
-    borderRadius: '10px',
-    overflow: 'hidden'
-  },
-  meterFill: {
-    height: '100%',
-    transition: 'transform 0.05s linear'
-  },
-  meterLabels: {
-    display: 'flex',
-    justifyContent: 'space-between',
-    marginTop: '5px',
-    fontSize: '14px'
-  }
 };
 
 export default Tuner;
