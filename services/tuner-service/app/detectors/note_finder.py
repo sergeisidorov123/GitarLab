@@ -54,8 +54,50 @@ class NoteFinder:
         
         for name, str_freq in strings.items():
             diff = abs(freq - str_freq)
-            if diff < min_diff and diff < 50:  
+            if diff < min_diff and diff < 10:  
                 min_diff = diff
                 closest = name
         
         return closest
+    
+    @classmethod
+    def find_closest_string_and_cents(cls, freq: float) -> Tuple[Optional[str], float, int]:
+        """
+        Find the closest guitar string and calculate cents deviation from target.
+        
+        Returns:
+            (string_name, target_frequency, cents_deviation)
+        """
+        strings = [
+            ('E', 82.41),   
+            ('A', 110.00),  
+            ('D', 146.83),  
+            ('G', 196.00),  
+            ('B', 246.94),  
+            ('E', 329.63)   
+        ]
+        
+        closest_string = None
+        closest_freq = 0.0
+        min_score = float('inf')
+        best_cents = 0
+
+        for string_name, target_freq in strings:
+            for harmonic in (1, 2, 3, 4):
+                harmonic_freq = target_freq * harmonic
+                if harmonic_freq <= 0:
+                    continue
+
+                cents_to_harmonic = 1200 * np.log2(freq / harmonic_freq)
+                score = abs(cents_to_harmonic) + (harmonic - 1) * 20
+
+                if score < min_score:
+                    min_score = score
+                    closest_string = string_name
+                    closest_freq = target_freq
+                    best_cents = int(1200 * np.log2(freq / closest_freq))
+
+        if closest_string and min_score < 80:
+            return closest_string, closest_freq, best_cents
+
+        return None, 0.0, 0
