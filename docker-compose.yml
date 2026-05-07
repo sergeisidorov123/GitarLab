@@ -18,6 +18,13 @@ services:
       catalog-db:
         condition: service_healthy
 
+  user-service:
+    build: ./services/user-service
+    ports:
+      - "8002:8002"
+    environment:
+      - PYTHONUNBUFFERED=1
+
   catalog-db:
     image: postgres:15-alpine
     environment:
@@ -41,6 +48,7 @@ services:
     depends_on:
       - tuner-service
       - catalog-service
+      - user-service
 
 volumes:
   catalog_pgdata:
