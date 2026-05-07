@@ -62,18 +62,18 @@ async def websocket_tuner(websocket: WebSocket):
                 })
                 continue
             
-            note, cents = note_finder.frequency_to_note(frequency)
+            note_name, note_cents = note_finder.frequency_to_note(frequency)
             
-            string = note_finder.get_guitar_string(frequency)
+            target_string, target_freq, cents_from_target = note_finder.find_closest_string_and_cents(frequency)
             
-            is_in_tune = abs(cents) < 5 if note else False
+            is_in_tune = abs(cents_from_target) < 5 if target_string else False
             
-            if note:
-                if cents < -10:
+            if target_string:
+                if cents_from_target < -10:
                     suggestion = "down"
-                elif cents > 10:
+                elif cents_from_target > 10:
                     suggestion = "up"
-                elif abs(cents) <= 5:
+                elif abs(cents_from_target) <= 5:
                     suggestion = "good"
                 else:
                     suggestion = "a bit off"
@@ -83,9 +83,9 @@ async def websocket_tuner(websocket: WebSocket):
             result = {
                 "type": "tuning",
                 "frequency": round(frequency, 1),
-                "note": note,
-                "cents": cents,
-                "string": string,
+                "note": note_name or target_string,
+                "cents": cents_from_target,
+                "string": target_string,
                 "is_in_tune": is_in_tune,
                 "suggestion": suggestion
             }
