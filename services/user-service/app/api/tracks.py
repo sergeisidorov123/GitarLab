@@ -2,7 +2,7 @@ from typing import List
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from app.core.database import get_db
-from app.api.auth import get_current_user
+from app.api.auth import get_current_user, get_current_user_optional
 from app.schemas.track import TrackCreate, TrackResponse
 from app.models.user import User
 from app.services.track_service import TrackService
@@ -15,7 +15,11 @@ def get_track_service(db: Session = Depends(get_db)) -> TrackService:
 
 
 @router.get("/", response_model=List[TrackResponse])
-def list_tracks(search: str | None = None, service: TrackService = Depends(get_track_service)):
+def list_tracks(
+    search: str | None = None,
+    current_user: User = Depends(get_current_user_optional),
+    service: TrackService = Depends(get_track_service),
+):
     return [
         TrackResponse(
             id=track.id,
@@ -27,6 +31,7 @@ def list_tracks(search: str | None = None, service: TrackService = Depends(get_t
             owner_id=track.owner_id,
             owner_username=track.owner.username if track.owner else "",
             created_at=track.created_at,
+            is_favorite=service.is_favorite(current_user, track.id) if current_user else False,
         )
         for track in service.list_tracks(search)
     ]
@@ -49,6 +54,7 @@ def list_my_tracks(
             owner_id=track.owner_id,
             owner_username=track.owner.username if track.owner else "",
             created_at=track.created_at,
+            is_favorite=service.is_favorite(current_user, track.id),
         )
         for track in service.list_my_tracks(current_user, search)
     ]
@@ -67,6 +73,7 @@ def list_favorites(current_user: User = Depends(get_current_user), service: Trac
             owner_id=track.owner_id,
             owner_username=track.owner.username if track.owner else "",
             created_at=track.created_at,
+            is_favorite=True,
         )
         for track in service.list_favorites(current_user)
     ]
@@ -78,18 +85,22 @@ def create_track(
     current_user: User = Depends(get_current_user),
     service: TrackService = Depends(get_track_service),
 ):
-    track = service.create_track(current_user, payload)
-    return TrackResponse(
-        id=track.id,
-        title=track.title,
-        artist=track.artist,
-        tuning_name=track.tuning_name,
-        string_names=track.string_names,
-        frequencies=track.frequencies,
-        owner_id=track.owner_id,
-        owner_username=track.owner.username if track.owner else "",
-        created_at=track.created_at,
-    )
+    try:
+        track = service.create_track(current_user, payload)
+        return TrackResponse(
+            id=track.id,
+            title=track.title,
+            artist=track.artist,
+            tuning_name=track.tuning_name,
+            string_names=track.string_names,
+            frequencies=track.frequencies,
+            owner_id=track.owner_id,
+            owner_username=track.owner.username if track.owner else "",
+            created_at=track.created_at,
+            is_favorite=False,
+        )
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc))
 
 
 @router.post("/{track_id}/favorite")
@@ -129,6 +140,7 @@ def edit_track(
             owner_id=track.owner_id,
             owner_username=track.owner.username if track.owner else "",
             created_at=track.created_at,
+            is_favorite=service.is_favorite(current_user, track_id),
         )
     except ValueError as exc:
         raise HTTPException(status_code=403 if "not own" in str(exc) else 404, detail=str(exc))
