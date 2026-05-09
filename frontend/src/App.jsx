@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import Tuner from './components/Tuner';
-import SongCatalog from './components/SongCatalog';
+import UserTracks from './components/UserTracks';
 import './App.css';
 
 function App() {
@@ -18,17 +18,17 @@ function App() {
             🎵 Tuner
           </button>
           <button
-            className={`nav-button ${activeTab === 'catalog' ? 'active' : ''}`}
-            onClick={() => setActiveTab('catalog')}
+            className={`nav-button ${activeTab === 'user' ? 'active' : ''}`}
+            onClick={() => setActiveTab('user')}
           >
-            📚 Song Catalog
+            🎧 Tuning Library
           </button>
         </nav>
       </header>
 
       <main className="app-main">
         {activeTab === 'tuner' && <Tuner />}
-        {activeTab === 'catalog' && <SongCatalog />}
+        {activeTab === 'user' && <UserTracks />}
       </main>
     </div>
   );

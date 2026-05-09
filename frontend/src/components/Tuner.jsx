@@ -47,7 +47,7 @@ const Tuner = () => {
             marginBottom: '2rem',
             fontWeight: '500'
           }}>
-            {result.string}
+            {result.string ? `String: ${result.string}` : ''}
           </div>
 
           <div style={{ margin: '2rem auto', maxWidth: '400px' }}>
