@@ -1,4 +1,17 @@
 services:
+  postgres-db:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: courseproject
+    volumes:
+      - postgres_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
   tuner-service:
     build: ./services/tuner-service
     ports:
@@ -13,9 +26,9 @@ services:
       - "8001:8001"
     environment:
       - PYTHONUNBUFFERED=1
-      - DATABASE_URL=postgresql+asyncpg://postgres:postgres@catalog-db:5432/catalog
+      - DATABASE_URL=postgresql+asyncpg://postgres:postgres@postgres-db:5432/courseproject
     depends_on:
-      catalog-db:
+      postgres-db:
         condition: service_healthy
 
   user-service:
@@ -24,20 +37,21 @@ services:
       - "8002:8002"
     environment:
       - PYTHONUNBUFFERED=1
+      - DATABASE_URL=postgresql+psycopg2://postgres:postgres@postgres-db:5432/courseproject
+    depends_on:
+      postgres-db:
+        condition: service_healthy
 
-  catalog-db:
-    image: postgres:15-alpine
+  comment-service:
+    build: ./services/comment-service
+    ports:
+      - "8003:8003"
     environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
-      POSTGRES_DB: catalog
-    volumes:
-      - catalog_pgdata:/var/lib/postgresql/data
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
+      - PYTHONUNBUFFERED=1
+      - DATABASE_URL=postgresql+psycopg2://postgres:postgres@postgres-db:5432/courseproject
+    depends_on:
+      postgres-db:
+        condition: service_healthy
 
   frontend:
     build:
@@ -49,6 +63,7 @@ services:
       - tuner-service
       - catalog-service
       - user-service
+      - comment-service
 
 volumes:
-  catalog_pgdata:
+  postgres_pgdata:

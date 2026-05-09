@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import Comments from './Comments';
 
 const API_URL = 'http://localhost:8002';
 const CATALOG_API_URL = 'http://localhost:8001';
@@ -517,7 +518,7 @@ const UserTracks = () => {
               const isFavorite = favoriteIds.has(track.id);
               const isOwner = view === 'my' || (token && username);
               return (
-                <div key={track.id} className="card" style={{ padding: '1.25rem', position: 'relative' }}>
+                <div key={track.id} className="card" style={{ padding: '1.25rem', position: 'relative', marginBottom: '2rem' }}>
                   <h3 style={{ margin: '0 0 0.5rem 0', fontSize: '1.1rem', color: '#333' }}>{track.title}</h3>
                   <p style={{ margin: '0 0 0.75rem 0', color: '#666', fontSize: '0.95rem' }}>
                     by <strong>{track.artist}</strong>
@@ -563,6 +564,7 @@ const UserTracks = () => {
                       </>
                     )}
                   </div>
+                  <Comments trackId={track.id} token={token} />
                 </div>
               );
             })}
