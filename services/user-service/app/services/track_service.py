@@ -1,8 +1,10 @@
 from typing import List
 from sqlalchemy.orm import Session
+from sqlalchemy import and_
 from app.repos.track_repos import TrackRepository
 from app.repos.favorite_repos import FavoriteRepository
 from app.models.user import User
+from app.models.track import Track
 from app.schemas.track import TrackCreate
 
 
@@ -10,8 +12,18 @@ class TrackService:
     def __init__(self, db: Session):
         self.track_repo = TrackRepository(db)
         self.favorite_repo = FavoriteRepository(db)
+        self.db = db
 
     def create_track(self, user: User, payload: TrackCreate):
+        existing = self.db.query(Track).filter(
+            and_(
+                Track.owner_id == user.id,
+                Track.title == payload.title,
+                Track.artist == payload.artist,
+            )
+        ).first()
+        if existing:
+            raise ValueError(f"Track '{payload.title}' by '{payload.artist}' already exists in your library")
         return self.track_repo.create(
             owner_id=user.id,
             title=payload.title,

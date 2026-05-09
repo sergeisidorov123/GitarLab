@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import List
+from typing import List, Optional
 from pydantic import BaseModel
 
 
@@ -16,6 +16,7 @@ class TrackResponse(TrackCreate):
     owner_id: int
     owner_username: str
     created_at: datetime
+    is_favorite: Optional[bool] = False
 
     class Config:
         orm_mode = True
