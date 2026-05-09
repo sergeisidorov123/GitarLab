@@ -50,3 +50,16 @@ def get_current_user_optional(credentials = Depends(http_bearer), db: Session = 
 @router.get("/me", response_model=UserResponse)
 def get_me(current_user = Depends(get_current_user)):
     return current_user
+
+
+@router.post("/make-admin/{user_id}")
+def make_admin(user_id: int, current_user = Depends(get_current_user), service: AuthService = Depends(get_auth_service)):
+    # Only admins can make other users admins
+    if not current_user.is_admin:
+        raise HTTPException(status_code=403, detail="Admin access required")
+
+    try:
+        service.make_admin(user_id)
+        return {"detail": "User promoted to admin"}
+    except ValueError as exc:
+        raise HTTPException(status_code=404, detail=str(exc))
