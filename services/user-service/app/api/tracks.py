@@ -37,6 +37,30 @@ def list_tracks(
     ]
 
 
+@router.get("/{track_id}", response_model=TrackResponse)
+def get_track(
+    track_id: str,
+    current_user: User = Depends(get_current_user_optional),
+    service: TrackService = Depends(get_track_service),
+):
+    try:
+        track = service.get_track(track_id)
+        return TrackResponse(
+            id=track.id,
+            title=track.title,
+            artist=track.artist,
+            tuning_name=track.tuning_name,
+            string_names=track.string_names,
+            frequencies=track.frequencies,
+            owner_id=track.owner_id,
+            owner_username=track.owner.username if track.owner else "",
+            created_at=track.created_at,
+            is_favorite=service.is_favorite(current_user, track.id) if current_user else False,
+        )
+    except ValueError as exc:
+        raise HTTPException(status_code=404, detail=str(exc))
+
+
 @router.get("/my", response_model=List[TrackResponse])
 def list_my_tracks(
     current_user: User = Depends(get_current_user),

@@ -54,11 +54,9 @@ class PitchDetector:
             peak_strength = 0.0
 
         if raw_freq <= 0 or peak_strength < 0.18:
-            self.freq_history.clear()
             return 0.0, True
 
         if raw_freq < self.min_freq or raw_freq > self.max_freq:
-            self.freq_history.clear()
             return 0.0, True
 
         fundamental_freq = self._find_fundamental(raw_freq)
@@ -90,28 +88,20 @@ class PitchDetector:
     def _find_fundamental(self, detected_freq: float) -> float:
         guitar_fundamentals = [82.41, 110.00, 146.83, 196.00, 246.94, 329.63]
         
-        if detected_freq <= 0:
-            return detected_freq
-
-        # Exact or very close fundamental
         for fundamental in guitar_fundamentals:
             if abs(detected_freq - fundamental) < 3:
                 return fundamental
-
-        # If we detected a strong harmonic, map it back to the correct string fundamental.
+        
         for fundamental in guitar_fundamentals:
-            for multiple in (2, 3, 4):
-                expected = fundamental * multiple
-                if expected <= 0:
-                    continue
-                if abs(detected_freq / expected - 1.0) < 0.03:
-                    return fundamental
-
-        # If there is a near-miss on the fundamental, prefer the string note.
-        for fundamental in guitar_fundamentals:
-            if abs(detected_freq - fundamental) < 8:
+            if abs(detected_freq - fundamental * 2) < 2:
                 return fundamental
-
+            if abs(detected_freq - fundamental * 3) < 2:
+                return fundamental
+        
+        for fundamental in guitar_fundamentals:
+            if abs(detected_freq - fundamental) < 8:  
+                return fundamental
+        
         return detected_freq
     
     def _autocorrelate_pitch(self, samples: np.ndarray):
@@ -159,17 +149,18 @@ class PitchDetector:
         if not peaks:
             peaks = [int(np.argmax(search) + min_period)]
 
-        # Score peaks by harmonic consistency (fundamental should have harmonic energy)
+        # Score peaks by harmonic consistency (look for fundamentals with harmonic energy at shorter lags)
         best_score = -1.0
         best_idx = None
         for p in peaks:
             score = corr[p]
-            if 2 * p < len(corr):
-                score += 0.5 * corr[2 * p]
-            if 3 * p < len(corr):
-                score += 0.33 * corr[3 * p]
-            if 4 * p < len(corr):
-                score += 0.25 * corr[4 * p]
+            # Harmonics of period p are at p/2, p/3, p/4 (shorter lags = higher frequencies)
+            if p > 1 and p // 2 > 0:
+                score += 0.5 * corr[p // 2]
+            if p > 2 and p // 3 > 0:
+                score += 0.33 * corr[p // 3]
+            if p > 3 and p // 4 > 0:
+                score += 0.25 * corr[p // 4]
             if score > best_score:
                 best_score = score
                 best_idx = p
