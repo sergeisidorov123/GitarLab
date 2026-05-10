@@ -36,6 +36,12 @@ class TrackService:
     def list_tracks(self, search: str | None = None):
         return self.track_repo.list_all(search)
 
+    def get_track(self, track_id: str):
+        track = self.track_repo.get_by_id(track_id)
+        if not track:
+            raise ValueError("Track not found")
+        return track
+
     def list_my_tracks(self, user: User, search: str | None = None):
         return self.track_repo.list_by_user(user.id, search)
 

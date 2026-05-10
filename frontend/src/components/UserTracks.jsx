@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from 'react';
-import Comments from './Comments';
 
 const API_URL = 'http://localhost:8002';
 const CATALOG_API_URL = 'http://localhost:8001';
@@ -28,7 +27,7 @@ const getTuningDisplayName = (tuningName, apiTunings) => {
   return tuningName;
 };
 
-const UserTracks = () => {
+const UserTracks = ({ onOpenTrackPage }) => {
   const [token, setToken] = useState(localStorage.getItem('user_token') || '');
   const [username, setUsername] = useState(localStorage.getItem('user_name') || '');
   const [mode, setMode] = useState('login');
@@ -518,53 +517,87 @@ const UserTracks = () => {
               const isFavorite = favoriteIds.has(track.id);
               const isOwner = view === 'my' || (token && username);
               return (
-                <div key={track.id} className="card" style={{ padding: '1.25rem', position: 'relative', marginBottom: '2rem' }}>
-                  <h3 style={{ margin: '0 0 0.5rem 0', fontSize: '1.1rem', color: '#333' }}>{track.title}</h3>
-                  <p style={{ margin: '0 0 0.75rem 0', color: '#666', fontSize: '0.95rem' }}>
-                    by <strong>{track.artist}</strong>
-                  </p>
-                  <div style={{ background: '#f5f5f5', padding: '0.75rem', borderRadius: '6px', marginBottom: '0.75rem' }}>
-                    <p style={{ margin: '0 0 0.35rem 0', color: '#555', fontSize: '0.85rem' }}>
-                      <strong>Tuning:</strong> {getTuningDisplayName(track.tuning_name, apiTunings)}
-                    </p>
-                    <p style={{ margin: '0.35rem 0', color: '#555', fontSize: '0.85rem' }}>
-                      <strong>Strings:</strong> {track.string_names.join(' • ')}
-                    </p>
-                    <p style={{ margin: '0.35rem 0 0', color: '#555', fontSize: '0.85rem' }}>
-                      <strong>Frequencies:</strong> {track.frequencies.map(f => f.toFixed(0)).join(' • ')} Hz
-                    </p>
-                  </div>
-                  <p style={{ margin: '0.5rem 0', color: '#888', fontSize: '0.8rem' }}>
-                    Created by <strong>{track.owner_username}</strong>
-                  </p>
-                  <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', marginTop: '1rem' }}>
-                    <button
-                      className="btn"
-                      onClick={() => toggleFavorite(track.id, isFavorite)}
-                      style={{ flex: 1, padding: '0.5rem' }}
-                    >
-                      {isFavorite ? '⭐ Remove' : '☆ Favorite'}
-                    </button>
-                    {view === 'my' && (
-                      <>
+                <div key={track.id} className="card" style={{
+                  padding: '1rem',
+                  marginBottom: '1rem',
+                  cursor: 'pointer',
+                  transition: 'all 0.2s ease'
+                }}
+                onClick={() => onOpenTrackPage && onOpenTrackPage(track.id)}
+                >
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <div style={{ flex: 1 }}>
+                      <h3 style={{
+                        margin: '0 0 0.25rem 0',
+                        fontSize: '1.1rem',
+                        color: '#333',
+                        fontWeight: '600'
+                      }}>
+                        {track.title || 'Untitled'}
+                      </h3>
+                      <p style={{
+                        margin: '0 0 0.25rem 0',
+                        color: '#666',
+                        fontSize: '0.95rem'
+                      }}>
+                        by <strong>{track.artist || 'Unknown Artist'}</strong>
+                      </p>
+                      <p style={{
+                        margin: '0',
+                        color: '#888',
+                        fontSize: '0.85rem'
+                      }}>
+                        {getTuningDisplayName(track.tuning_name, apiTunings)}
+                      </p>
+                    </div>
+                    <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                      {token && (
                         <button
                           className="btn"
-                          onClick={() => editTrack(track)}
-                          style={{ flex: 1, padding: '0.5rem' }}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            toggleFavorite(track.id, isFavorite);
+                          }}
+                          style={{
+                            padding: '0.4rem 0.8rem',
+                            fontSize: '0.85rem'
+                          }}
                         >
-                          ✎ Edit
+                          {isFavorite ? '⭐' : '☆'}
                         </button>
-                        <button
-                          className="btn btn-danger"
-                          onClick={() => deleteTrack(track.id)}
-                          style={{ flex: 1, padding: '0.5rem' }}
-                        >
-                          🗑 Delete
-                        </button>
-                      </>
-                    )}
+                      )}
+                      {view === 'my' && (
+                        <>
+                          <button
+                            className="btn"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              editTrack(track);
+                            }}
+                            style={{
+                              padding: '0.4rem 0.8rem',
+                              fontSize: '0.85rem'
+                            }}
+                          >
+                            ✎
+                          </button>
+                          <button
+                            className="btn btn-danger"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              deleteTrack(track.id);
+                            }}
+                            style={{
+                              padding: '0.4rem 0.8rem',
+                              fontSize: '0.85rem'
+                            }}
+                          >
+                            🗑
+                          </button>
+                        </>
+                      )}
+                    </div>
                   </div>
-                  <Comments trackId={track.id} token={token} />
                 </div>
               );
             })}
