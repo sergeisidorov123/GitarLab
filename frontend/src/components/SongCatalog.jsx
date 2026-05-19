@@ -43,7 +43,7 @@ const SongCatalog = () => {
     return (
       <div className="card">
         <div className="spinner"></div>
-        <p style={{ textAlign: 'center', color: '#666' }}>Loading songs...</p>
+        <p style={{ textAlign: 'center', color: '#666' }}>Загрузка песен...</p>
       </div>
     );
   }
@@ -55,7 +55,7 @@ const SongCatalog = () => {
           <strong>Error:</strong> {error}
         </div>
         <button className="btn" onClick={fetchSongs}>
-          Try Again
+          Попробовать снова
         </button>
       </div>
     );
@@ -64,14 +64,14 @@ const SongCatalog = () => {
   return (
     <div>
       <div className="card">
-        <h2 className="card-title">🎼 Song Catalog</h2>
+        <h2 className="card-title">🎼 Каталог песен</h2>
         <p className="card-subtitle">
-          Browse songs and their tunings
+          Просмотр песен и их тюнингов
         </p>
 
         {songs.length === 0 ? (
           <p style={{ textAlign: 'center', color: '#666', padding: '2rem' }}>
-            No songs found. The catalog service might not be running.
+            Песни не найдены. Сервис каталога может быть не запущен.
           </p>
         ) : (
           <div className="grid grid-3">
@@ -106,7 +106,7 @@ const SongCatalog = () => {
 
       {selectedSong && (
         <div className="card">
-          <h2 className="card-title">🎵 Song Details</h2>
+          <h2 className="card-title">🎵 Детали песни</h2>
 
           <div style={{ marginBottom: '2rem' }}>
             <h3 style={{ color: '#333', margin: '0 0 0.5rem 0' }}>
@@ -119,13 +119,13 @@ const SongCatalog = () => {
 
           <div>
             <h4 style={{ color: '#333', margin: '0 0 1rem 0' }}>
-              🎸 Tuning: {selectedSong.tuning.name}
+              🎸 Тюнинг: {selectedSong.tuning.name}
             </h4>
 
             <div className="grid grid-2">
               <div>
                 <h5 style={{ color: '#555', margin: '0 0 0.5rem 0' }}>
-                  String Names
+                  Названия струн
                 </h5>
                 <ul style={{ paddingLeft: '1.5rem' }}>
                   {selectedSong.tuning.string_names.map((name, index) => (
@@ -138,7 +138,7 @@ const SongCatalog = () => {
 
               <div>
                 <h5 style={{ color: '#555', margin: '0 0 0.5rem 0' }}>
-                  Frequencies (Hz)
+                  Частоты (Гц)
                 </h5>
                 <ul style={{ paddingLeft: '1.5rem' }}>
                   {selectedSong.tuning.frequencies.map((freq, index) => (
@@ -156,7 +156,7 @@ const SongCatalog = () => {
             onClick={() => setSelectedSong(null)}
             style={{ marginTop: '2rem' }}
           >
-            Close Details
+            Закрыть детали
           </button>
         </div>
       )}

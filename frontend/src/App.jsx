@@ -38,7 +38,7 @@ function App() {
   return (
     <div className="app">
       <header className="app-header">
-        <h1 className="app-title">🎸 Guitar Pro</h1>
+        <h1 className="app-title">🎸 Guitar Lab</h1>
         <nav className="app-nav">
           {activeTab !== 'track-page' && (
             <>
@@ -46,20 +46,20 @@ function App() {
                 className={`nav-button ${activeTab === 'tuner' ? 'active' : ''}`}
                 onClick={() => setActiveTab('tuner')}
               >
-                🎵 Tuner
+                🎵 Тюнер
               </button>
               <button
                 className={`nav-button ${activeTab === 'user' ? 'active' : ''}`}
                 onClick={() => setActiveTab('user')}
               >
-                🎧 Tuning Library
+                🎧 Библиотека тюнингов
               </button>
               {user && user.is_admin && (
                 <button
                   className={`nav-button ${activeTab === 'admin' ? 'active' : ''}`}
                   onClick={() => setActiveTab('admin')}
                 >
-                  🛡️ Admin
+                  🛡️ Админ
                 </button>
               )}
             </>
@@ -73,7 +73,7 @@ function App() {
         {activeTab === 'track-page' && currentTrackId && (
           <TrackPage trackId={currentTrackId} token={token} onBack={handleBackFromTrackPage} />
         )}
-        {activeTab === 'admin' && user && user.is_admin && <AdminComments token={token} />}
+        {activeTab === 'admin' && user && user.is_admin && <AdminComments token={token} onOpenTrackPage={handleOpenTrackPage} />}
       </main>
     </div>
   );

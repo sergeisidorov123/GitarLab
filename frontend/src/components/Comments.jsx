@@ -54,7 +54,7 @@ const Comments = ({ trackId, token }) => {
 
   const submitComment = async (content, parentId = null) => {
     if (!token) {
-      setError('You must be logged in to comment');
+      setError('Для оставления комментария необходимо войти в систему');
       return;
     }
 
@@ -113,7 +113,7 @@ const Comments = ({ trackId, token }) => {
   };
 
   const deleteComment = async (commentId) => {
-    if (!window.confirm('Are you sure you want to delete this comment?')) {
+    if (!window.confirm('Вы уверены, что хотите удалить этот комментарий?')) {
       return;
     }
 
@@ -165,13 +165,13 @@ const Comments = ({ trackId, token }) => {
                   }}
                   style={{ marginRight: '0.5rem', fontSize: '0.8rem' }}
                 >
-                  ✎ Edit
+                  ✎ Редактировать
                 </button>
                 <button
                   onClick={() => deleteComment(comment.id)}
                   style={{ fontSize: '0.8rem', color: '#d32f2f' }}
                 >
-                  🗑 Delete
+                  🗑 Удалить
                 </button>
               </div>
             )}
@@ -190,7 +190,7 @@ const Comments = ({ trackId, token }) => {
                   disabled={loading}
                   style={{ marginRight: '0.5rem' }}
                 >
-                  Save
+                  Сохранить
                 </button>
                 <button
                   onClick={() => {
@@ -198,7 +198,7 @@ const Comments = ({ trackId, token }) => {
                     setEditText('');
                   }}
                 >
-                  Cancel
+                  Отмена
                 </button>
               </div>
             </div>
@@ -221,7 +221,7 @@ const Comments = ({ trackId, token }) => {
               onClick={() => setReplyingTo(replyingTo === comment.id ? null : comment.id)}
               style={{ fontSize: '0.8rem', color: '#1976d2', marginTop: '0.5rem' }}
             >
-              {replyingTo === comment.id ? 'Cancel Reply' : 'Reply'}
+              {replyingTo === comment.id ? 'Отменить ответ' : 'Ответить'}
             </button>
           )}
 
@@ -230,14 +230,14 @@ const Comments = ({ trackId, token }) => {
               <textarea
                 value={replyText}
                 onChange={(e) => setReplyText(e.target.value)}
-                placeholder="Write a reply..."
+                placeholder="Написать ответ..."
                 style={{ width: '100%', minHeight: '60px', marginBottom: '0.5rem', padding: '0.5rem', borderRadius: '4px', border: '1px solid #ddd' }}
               />
               <button
                 onClick={() => submitComment(replyText, comment.id)}
                 disabled={loading || !replyText.trim()}
               >
-                Reply
+                Отправить ответ
               </button>
             </div>
           )}
@@ -254,7 +254,7 @@ const Comments = ({ trackId, token }) => {
 
   return (
     <div style={{ marginTop: '2rem' }}>
-      <h3 style={{ marginBottom: '1rem' }}>💬 Comments</h3>
+      <h3 style={{ marginBottom: '1rem' }}>💬 Комментарии</h3>
 
       {error && (
         <div style={{ color: '#d32f2f', marginBottom: '1rem', padding: '0.5rem', background: '#ffebee', borderRadius: '4px' }}>
@@ -267,7 +267,7 @@ const Comments = ({ trackId, token }) => {
           <textarea
             value={newComment}
             onChange={(e) => setNewComment(e.target.value)}
-            placeholder="Share your thoughts about this tuning..."
+            placeholder="Поделитесь своими мыслями об этом тюнинге..."
             style={{ width: '100%', minHeight: '80px', padding: '0.75rem', borderRadius: '8px', border: '1px solid #ddd', marginBottom: '0.5rem' }}
           />
           <button
@@ -275,19 +275,19 @@ const Comments = ({ trackId, token }) => {
             disabled={loading || !newComment.trim()}
             style={{ padding: '0.5rem 1rem', borderRadius: '4px', background: '#1976d2', color: 'white', border: 'none' }}
           >
-            {loading ? 'Posting...' : 'Post Comment'}
+            {loading ? 'Публикация...' : 'Оставить комментарий'}
           </button>
         </div>
       ) : (
         <p style={{ color: '#666', fontStyle: 'italic' }}>
-          Please log in to leave comments.
+          Пожалуйста, войдите в систему, чтобы оставлять комментарии.
         </p>
       )}
 
       <div>
         {comments.length === 0 ? (
           <p style={{ color: '#666', fontStyle: 'italic', textAlign: 'center', padding: '2rem' }}>
-            No comments yet. Be the first to share your thoughts!
+            Еще нет комментариев. Будьте первым, кто поделится своим мнением!
           </p>
         ) : (
           comments.map(comment => renderComment(comment))

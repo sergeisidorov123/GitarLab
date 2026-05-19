@@ -1,9 +1,11 @@
 import React, { useEffect, useState } from 'react';
 
 const API_URL = 'http://localhost:8003';
+const TRACK_API_URL = 'http://localhost:8002';
 
-const AdminComments = ({ token }) => {
+const AdminComments = ({ token, onOpenTrackPage }) => {
   const [comments, setComments] = useState([]);
+  const [tracks, setTracks] = useState({});
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [filter, setFilter] = useState('all'); // all, deleted, active
@@ -16,6 +18,27 @@ const AdminComments = ({ token }) => {
     Authorization: `Bearer ${token}`,
     'Content-Type': 'application/json',
   });
+
+  const loadTrackData = async (trackId) => {
+    if (tracks[trackId]) {
+      return tracks[trackId];
+    }
+    
+    try {
+      const response = await fetch(`${TRACK_API_URL}/tracks/${trackId}`, {
+        headers: authHeaders(),
+      });
+      
+      if (response.ok) {
+        const trackData = await response.json();
+        setTracks(prev => ({ ...prev, [trackId]: trackData }));
+        return trackData;
+      }
+    } catch (err) {
+      console.error('Failed to load track:', err);
+    }
+    return null;
+  };
 
   const loadComments = async () => {
     setLoading(true);
@@ -36,19 +59,25 @@ const AdminComments = ({ token }) => {
         }
 
         setComments(filteredData);
+        
+        // Load track data for each comment
+        const uniqueTrackIds = [...new Set(filteredData.map(c => c.track_id))];
+        for (const trackId of uniqueTrackIds) {
+          await loadTrackData(trackId);
+        }
       } else {
         const errorData = await response.json();
-        setError(errorData.detail || 'Failed to load comments');
+        setError(errorData.detail || 'Ошибка загрузки комментариев');
       }
     } catch (err) {
-      setError('Failed to load comments');
+      setError('Ошибка загрузки комментариев');
     } finally {
       setLoading(false);
     }
   };
 
   const hardDeleteComment = async (commentId) => {
-    if (!window.confirm('Are you sure you want to permanently delete this comment? This action cannot be undone.')) {
+    if (!window.confirm('Вы уверены, что хотите навсегда удалить этот комментарий? Это действие нельзя будет отменить.')) {
       return;
     }
 
@@ -64,10 +93,10 @@ const AdminComments = ({ token }) => {
         loadComments();
       } else {
         const errorData = await response.json();
-        setError(errorData.detail || 'Failed to delete comment');
+        setError(errorData.detail || 'Ошибка при удалении комментария');
       }
     } catch (err) {
-      setError('Failed to delete comment');
+      setError('Ошибка при удалении комментария');
     } finally {
       setLoading(false);
     }
@@ -80,8 +109,8 @@ const AdminComments = ({ token }) => {
   if (!token) {
     return (
       <div className="card">
-        <h2 className="card-title">🔒 Admin Access Required</h2>
-        <p className="card-subtitle">You must be logged in as an administrator to access this page.</p>
+        <h2 className="card-title">🔒 Админ доступ</h2>
+        <p className="card-subtitle">Вы должны быть авторизованы как администратор, чтобы получить доступ к этой странице.</p>
       </div>
     );
   }
@@ -91,11 +120,11 @@ const AdminComments = ({ token }) => {
       <div className="card">
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem', marginBottom: '2rem' }}>
           <div>
-            <h2 className="card-title">🛡️ Comment Administration</h2>
-            <p className="card-subtitle">Manage all comments across the platform</p>
+            <h2 className="card-title">🛡️ Администрирование комментариев</h2>
+            <p className="card-subtitle">Управление всеми комментариями на платформе</p>
           </div>
           <button className="btn" onClick={loadComments} disabled={loading}>
-            🔄 Refresh
+            🔄 Обновить
           </button>
         </div>
 
@@ -112,13 +141,13 @@ const AdminComments = ({ token }) => {
               className={`btn ${filter === filterOption ? 'active' : ''}`}
               onClick={() => setFilter(filterOption)}
             >
-              {filterOption === 'all' ? '📋 All Comments' : filterOption === 'active' ? '💬 Active' : '🗑️ Deleted'}
+              {filterOption === 'all' ? '📋 Все комментарии' : filterOption === 'active' ? '💬 Активные' : '🗑️ Удаленные'}
             </button>
           ))}
         </div>
 
         <div style={{ marginBottom: '1rem', fontSize: '0.9rem', color: '#666' }}>
-          Showing {comments.length} comments
+          Отображение {comments.length} комментариев
         </div>
       </div>
 
@@ -126,11 +155,11 @@ const AdminComments = ({ token }) => {
         {loading ? (
           <div style={{ textAlign: 'center', padding: '2rem' }}>
             <div className="spinner"></div>
-            <p>Loading comments...</p>
+            <p>Загрузка комментариев...</p>
           </div>
         ) : comments.length === 0 ? (
           <p style={{ color: '#666', textAlign: 'center', padding: '2rem' }}>
-            No comments found for the selected filter.
+            Комментарии для выбранного фильтра не найдены.
           </p>
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
@@ -153,7 +182,7 @@ const AdminComments = ({ token }) => {
                     </span>
                     {comment.is_deleted && (
                       <span style={{ color: '#d32f2f', fontSize: '0.8rem', marginLeft: '0.5rem' }}>
-                        (Deleted)
+                        (Удалено)
                       </span>
                     )}
                   </div>
@@ -162,17 +191,34 @@ const AdminComments = ({ token }) => {
                       className="btn btn-danger"
                       onClick={() => hardDeleteComment(comment.id)}
                       style={{ fontSize: '0.8rem', padding: '0.25rem 0.5rem' }}
-                      title="Permanently delete this comment"
+                      title="Удалить комментарий навсегда"
                     >
-                      🗑️ Delete Permanently
+                      🗑️ Удалить навсегда
                     </button>
                   </div>
                 </div>
 
                 <div style={{ marginBottom: '0.5rem' }}>
-                  <span style={{ fontSize: '0.8rem', color: '#666' }}>
-                    Track ID: {comment.track_id}
-                  </span>
+                  {tracks[comment.track_id] ? (
+                    <button
+                      onClick={() => onOpenTrackPage && onOpenTrackPage(comment.track_id)}
+                      style={{
+                        background: 'none',
+                        border: 'none',
+                        color: '#1976d2',
+                        cursor: 'pointer',
+                        textDecoration: 'underline',
+                        fontSize: '0.8rem',
+                        padding: 0
+                      }}
+                    >
+                      {tracks[comment.track_id].title} от {tracks[comment.track_id].artist}
+                    </button>
+                  ) : (
+                    <span style={{ fontSize: '0.8rem', color: '#666' }}>
+                      Track ID: {comment.track_id}
+                    </span>
+                  )}
                   {comment.parent_id && (
                     <span style={{ fontSize: '0.8rem', color: '#666', marginLeft: '1rem' }}>
                       Reply to comment #{comment.parent_id}

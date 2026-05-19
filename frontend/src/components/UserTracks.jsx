@@ -38,8 +38,11 @@ const UserTracks = ({ onOpenTrackPage }) => {
     tuning_name: 'standard',
     string_names: TUNING_PRESETS.standard.strings,
     frequencies: TUNING_PRESETS.standard.frequencies,
+    genre_names: [],
     useCustom: false,
   });
+  const [genreInput, setGenreInput] = useState('');
+  const [genresList, setGenresList] = useState([]);
   const [editingTrackId, setEditingTrackId] = useState(null);
   const [view, setView] = useState('all');
   const [search, setSearch] = useState('');
@@ -50,12 +53,28 @@ const UserTracks = ({ onOpenTrackPage }) => {
   const [showForm, setShowForm] = useState(false);
   const [apiTunings, setApiTunings] = useState([]);
 
+  const loadGenres = async () => {
+    try {
+      const response = await fetch(`${API_URL}/genres/`);
+      if (!response.ok) {
+        throw new Error('Failed to load genres');
+      }
+      const data = await response.json();
+      setGenresList(data);
+    } catch (err) {
+      console.error('Failed to load genres:', err);
+      setGenresList([]);
+    }
+  };
+
   useEffect(() => {
     // Load tunings from catalog service
     fetch(`${CATALOG_API_URL}/tunings/`)
       .then(res => res.json())
       .then(data => setApiTunings(data))
       .catch(err => console.error('Failed to load tunings:', err));
+
+    loadGenres();
 
     if (token) {
       loadTracks();
@@ -91,7 +110,7 @@ const UserTracks = ({ onOpenTrackPage }) => {
         }));
       }
     } else if (name === 'string_names' || name === 'frequencies') {
-      const values = value.split(',').map((v) => v.trim());
+      const values = value.split(',').map((v) => v.trim()).filter((v) => v !== '');
       if (name === 'frequencies') {
         setTrackForm((prev) => ({
           ...prev,
@@ -103,9 +122,29 @@ const UserTracks = ({ onOpenTrackPage }) => {
           [name]: values,
         }));
       }
+    } else if (name === 'genre_input') {
+      setGenreInput(value);
     } else {
       setTrackForm((prev) => ({ ...prev, [name]: value }));
     }
+  };
+
+  const addGenre = () => {
+    const normalized = genreInput.trim();
+    if (!normalized) return;
+
+    setTrackForm((prev) => {
+      const newGenres = Array.from(new Set([...prev.genre_names, normalized]));
+      return { ...prev, genre_names: newGenres };
+    });
+    setGenreInput('');
+  };
+
+  const removeGenre = (genreToRemove) => {
+    setTrackForm((prev) => ({
+      ...prev,
+      genre_names: prev.genre_names.filter((name) => name !== genreToRemove),
+    }));
   };
 
   const handleCustomTuningToggle = () => {
@@ -202,6 +241,7 @@ const UserTracks = ({ onOpenTrackPage }) => {
       setFavoriteIds(favorites);
     } catch (err) {
       setError(err.message);
+      setTracks([]); // Clear tracks on error to avoid showing stale data
     } finally {
       setLoading(false);
     }
@@ -217,6 +257,7 @@ const UserTracks = ({ onOpenTrackPage }) => {
         tuning_name: trackForm.tuning_name,
         string_names: trackForm.string_names,
         frequencies: trackForm.frequencies,
+        genre_names: trackForm.genre_names,
       };
 
       const method = editingTrackId ? 'PUT' : 'POST';
@@ -232,6 +273,7 @@ const UserTracks = ({ onOpenTrackPage }) => {
         throw new Error(data.detail || 'Could not save track');
       }
       resetTrackForm();
+      await loadGenres();
       loadTracks();
     } catch (err) {
       setError(err.message);
@@ -247,28 +289,33 @@ const UserTracks = ({ onOpenTrackPage }) => {
       tuning_name: 'standard',
       string_names: TUNING_PRESETS.standard.strings,
       frequencies: TUNING_PRESETS.standard.frequencies,
+      genre_names: [],
       useCustom: false,
     });
+    setGenreInput('');
     setEditingTrackId(null);
     setShowForm(false);
   };
 
   const editTrack = (track) => {
     const isPreset = track.tuning_name in TUNING_PRESETS;
+    const genreNames = track.genres ? track.genres.map(g => g.name) : [];
     setTrackForm({
       title: track.title,
       artist: track.artist,
       tuning_name: track.tuning_name,
       string_names: track.string_names,
       frequencies: track.frequencies,
+      genre_names: genreNames,
       useCustom: !isPreset,
     });
+    setGenreInput('');
     setEditingTrackId(track.id);
     setShowForm(true);
   };
 
   const deleteTrack = async (trackId) => {
-    if (!window.confirm('Are you sure you want to delete this track?')) {
+    if (!window.confirm('Вы уверены, что хотите удалить этот трек?')) {
       return;
     }
     setLoading(true);
@@ -314,8 +361,8 @@ const UserTracks = ({ onOpenTrackPage }) => {
   if (!token) {
     return (
       <div className="card">
-        <h2 className="card-title">🎧 Tuning Library</h2>
-        <p className="card-subtitle">Create and manage your guitar tuning presets.</p>
+        <h2 className="card-title">🎧 Библиотека тюнингов</h2>
+        <p className="card-subtitle">Создавайте и управляйте своими тюнингами гитары.</p>
 
         {error && (
           <div className="error-message">
@@ -328,13 +375,13 @@ const UserTracks = ({ onOpenTrackPage }) => {
             className={`btn ${mode === 'login' ? 'active' : ''}`}
             onClick={() => setMode('login')}
           >
-            Sign In
+            Войти
           </button>
           <button
             className={`btn ${mode === 'register' ? 'active' : ''}`}
             onClick={() => setMode('register')}
           >
-            Create Account
+            Создать аккаунт
           </button>
         </div>
 
@@ -342,7 +389,7 @@ const UserTracks = ({ onOpenTrackPage }) => {
           <input
             type="text"
             name="username"
-            placeholder="Username"
+            placeholder="Имя пользователя"
             value={authForm.username}
             onChange={handleAuthChange}
             style={{ width: '100%', padding: '0.75rem', borderRadius: '8px', border: '1px solid #ddd' }}
@@ -350,7 +397,7 @@ const UserTracks = ({ onOpenTrackPage }) => {
           <input
             type="password"
             name="password"
-            placeholder="Password"
+            placeholder="Пароль"
             value={authForm.password}
             onChange={handleAuthChange}
             style={{ width: '100%', padding: '0.75rem', borderRadius: '8px', border: '1px solid #ddd' }}
@@ -360,7 +407,7 @@ const UserTracks = ({ onOpenTrackPage }) => {
             onClick={mode === 'login' ? login : register}
             disabled={loading}
           >
-            {mode === 'login' ? 'Sign In' : 'Create Account'}
+            {mode === 'login' ? 'Войти' : 'Создать аккаунт'}
           </button>
         </div>
       </div>
@@ -372,11 +419,11 @@ const UserTracks = ({ onOpenTrackPage }) => {
       <div className="card">
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem', marginBottom: '2rem' }}>
           <div>
-            <h2 className="card-title">🎧 {username}'s Tuning Library</h2>
-            <p className="card-subtitle">Manage your guitar tuning presets and collections</p>
+            <h2 className="card-title">🎧 Библиотека тюнингов {username}</h2>
+            <p className="card-subtitle">Управляйте своими тюнингами и коллекциями</p>
           </div>
           <button className="btn btn-danger" onClick={logout}>
-            Logout
+            Выйти
           </button>
         </div>
 
@@ -393,7 +440,7 @@ const UserTracks = ({ onOpenTrackPage }) => {
               className={`btn ${view === item ? 'active' : ''}`}
               onClick={() => setView(item)}
             >
-              {item === 'all' ? '🌐 All Tunings' : item === 'my' ? '📝 My Tunings' : '⭐ Favorites'}
+              {item === 'all' ? '🌐 Все тюнинги' : item === 'my' ? '📝 Мои тюнинги' : '⭐ Избранное'}
             </button>
           ))}
         </div>
@@ -403,25 +450,25 @@ const UserTracks = ({ onOpenTrackPage }) => {
             type="text"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            placeholder="Search title, artist, or tuning name..."
+            placeholder="Поиск по названию, исполнителю или названию тюнинга..."
             style={{ flex: '1', minWidth: '200px', padding: '0.75rem', borderRadius: '8px', border: '1px solid #ddd' }}
           />
           {view === 'my' && (
             <button className="btn" onClick={() => { setShowForm(!showForm); if (editingTrackId) resetTrackForm(); }}>
-              {showForm ? '✕ Cancel' : '+ New Tuning'}
+              {showForm ? '✕ Отмена' : '+ Новый тюнинг'}
             </button>
           )}
         </div>
 
         {view === 'my' && showForm && (
           <div style={{ background: '#f9f9f9', padding: '1.5rem', borderRadius: '12px', marginBottom: '2rem' }}>
-            <h3 style={{ marginTop: 0 }}>{editingTrackId ? 'Edit Tuning' : 'Create New Tuning'}</h3>
+            <h3 style={{ marginTop: 0 }}>{editingTrackId ? 'Редактировать тюнинг' : 'Создать новый тюнинг'}</h3>
             <div style={{ display: 'grid', gap: '1rem' }}>
               <input
                 type="text"
                 name="title"
                 value={trackForm.title}
-                placeholder="Song title"
+                placeholder="Название песни"
                 onChange={handleTrackChange}
                 style={{ width: '100%', padding: '0.75rem', borderRadius: '8px', border: '1px solid #ddd' }}
               />
@@ -429,7 +476,7 @@ const UserTracks = ({ onOpenTrackPage }) => {
                 type="text"
                 name="artist"
                 value={trackForm.artist}
-                placeholder="Artist name"
+                placeholder="Имя исполнителя"
                 onChange={handleTrackChange}
                 style={{ width: '100%', padding: '0.75rem', borderRadius: '8px', border: '1px solid #ddd' }}
               />
@@ -440,7 +487,7 @@ const UserTracks = ({ onOpenTrackPage }) => {
                   onChange={handleCustomTuningToggle}
                   style={{ cursor: 'pointer' }}
                 />
-                <label style={{ cursor: 'pointer', flex: 1 }}>Use Custom Tuning</label>
+                <label style={{ cursor: 'pointer', flex: 1 }}>Использовать пользовательский тюнинг</label>
               </div>
               {!trackForm.useCustom ? (
                 <select
@@ -460,7 +507,7 @@ const UserTracks = ({ onOpenTrackPage }) => {
                   type="text"
                   name="tuning_name"
                   value={trackForm.tuning_name}
-                  placeholder="Custom tuning name (e.g., DADGAD)"
+                  placeholder="Название пользовательского тюнинга (например, DADGAD)"
                   onChange={handleTrackChange}
                   style={{ width: '100%', padding: '0.75rem', borderRadius: '8px', border: '1px solid #ddd' }}
                 />
@@ -471,7 +518,7 @@ const UserTracks = ({ onOpenTrackPage }) => {
                     type="text"
                     name="string_names"
                     value={trackForm.string_names.join(', ')}
-                    placeholder="String names (comma separated, e.g., E, A, D, G, B, E)"
+                    placeholder="Названия струн (через запятую, например, E, A, D, G, B, E)"
                     onChange={handleTrackChange}
                     style={{ width: '100%', padding: '0.75rem', borderRadius: '8px', border: '1px solid #ddd' }}
                   />
@@ -479,22 +526,75 @@ const UserTracks = ({ onOpenTrackPage }) => {
                     type="text"
                     name="frequencies"
                     value={trackForm.frequencies.join(', ')}
-                    placeholder="Frequencies in Hz (comma separated, e.g., 82.41, 110.00, 146.83, 196.00, 246.94, 329.63)"
+                    placeholder="Частоты в Гц (через запятую, например, 82.41, 110.00, 146.83, 196.00, 246.94, 329.63)"
                     onChange={handleTrackChange}
                     style={{ width: '100%', padding: '0.75rem', borderRadius: '8px', border: '1px solid #ddd' }}
                   />
                 </>
               )}
               <div style={{ background: 'white', padding: '1rem', borderRadius: '8px', border: '1px solid #e0e0e0' }}>
-                <p style={{ margin: '0 0 0.5rem 0', color: '#666', fontSize: '0.9rem' }}>Strings: {trackForm.string_names.join(', ')}</p>
-                <p style={{ margin: '0', color: '#666', fontSize: '0.9rem' }}>Frequencies: {trackForm.frequencies.map(f => (typeof f === 'number' ? f.toFixed(1) : f)).join(', ')} Hz</p>
+                <p style={{ margin: '0 0 0.5rem 0', color: '#666', fontSize: '0.9rem' }}>Струны: {trackForm.string_names.join(', ')}</p>
+                <p style={{ margin: '0', color: '#666', fontSize: '0.9rem' }}>Частоты: {trackForm.frequencies.map(f => (typeof f === 'number' ? f.toFixed(1) : f)).join(', ')} Гц</p>
+              </div>
+              <div>
+                <label style={{ display: 'block', marginBottom: '0.5rem', color: '#333', fontWeight: '500' }}>
+                  Жанры
+                </label>
+                <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap', alignItems: 'center' }}>
+                  <input
+                    list="genre-list"
+                    name="genre_input"
+                    value={genreInput}
+                    placeholder="Новый жанр или выберите из списка"
+                    onChange={handleTrackChange}
+                    onKeyDown={(event) => {
+                      if (event.key === 'Enter') {
+                        event.preventDefault();
+                        addGenre();
+                      }
+                    }}
+                    style={{ flex: '1 1 240px', padding: '0.75rem', borderRadius: '8px', border: '1px solid #ddd' }}
+                  />
+                  <button
+                    className="btn"
+                    type="button"
+                    onClick={addGenre}
+                    style={{ alignSelf: 'stretch', minWidth: '52px' }}
+                  >
+                    +
+                  </button>
+                </div>
+                <datalist id="genre-list">
+                  {genresList.map((genre) => (
+                    <option key={genre.id} value={genre.name} />
+                  ))}
+                </datalist>
+                {trackForm.genre_names.length > 0 && (
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem', marginTop: '0.75rem' }}>
+                    {trackForm.genre_names.map((genre) => (
+                      <div key={genre} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.45rem 0.75rem', borderRadius: '999px', background: '#f3f4f6', border: '1px solid #d1d5db' }}>
+                        <span style={{ color: '#333', fontSize: '0.9rem' }}>{genre}</span>
+                        <button
+                          type="button"
+                          onClick={() => removeGenre(genre)}
+                          style={{ border: 'none', background: 'transparent', cursor: 'pointer', color: '#6b7280', fontWeight: '700' }}
+                        >
+                          ×
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+                <p style={{ margin: '0.5rem 0 0 0', color: '#666', fontSize: '0.85rem' }}>
+                  Нажмите «+» или Enter, чтобы добавить жанр.
+                </p>
               </div>
               <div style={{ display: 'flex', gap: '0.75rem' }}>
                 <button className="btn" onClick={saveTrack} disabled={loading} style={{ flex: 1 }}>
-                  {editingTrackId ? 'Update Tuning' : 'Save Tuning'}
+                  {editingTrackId ? 'Обновить тюнинг' : 'Сохранить тюнинг'}
                 </button>
                 <button className="btn btn-danger" onClick={resetTrackForm} style={{ flex: 1 }}>
-                  Cancel
+                  Отмена
                 </button>
               </div>
             </div>
@@ -503,14 +603,14 @@ const UserTracks = ({ onOpenTrackPage }) => {
       </div>
 
       <div className="card">
-        <h2 className="card-title">{view === 'all' ? '🌐 All Tunings' : view === 'my' ? '📝 My Tunings' : '⭐ Favorite Tunings'}</h2>
+        <h2 className="card-title">{view === 'all' ? '🌐 Все тюнинги' : view === 'my' ? '📝 Мои тюнинги' : '⭐ Избранные тюнинги'}</h2>
 
         {loading ? (
           <div style={{ textAlign: 'center' }}>
             <div className="spinner"></div>
           </div>
         ) : tracks.length === 0 ? (
-          <p style={{ color: '#666', textAlign: 'center', padding: '2rem' }}>No tunings found.</p>
+          <p style={{ color: '#666', textAlign: 'center', padding: '2rem' }}>Тюнинги не найдены.</p>
         ) : (
           <div className="grid grid-2">
             {tracks.map((track) => {
@@ -540,15 +640,25 @@ const UserTracks = ({ onOpenTrackPage }) => {
                         color: '#666',
                         fontSize: '0.95rem'
                       }}>
-                        by <strong>{track.artist || 'Unknown Artist'}</strong>
+                        by <strong>{track.artist || 'Неизвестный исполнитель'}</strong>
+                        {track.owner_username && ` (${track.owner_username})`}
                       </p>
                       <p style={{
-                        margin: '0',
+                        margin: '0 0 0.5rem 0',
                         color: '#888',
                         fontSize: '0.85rem'
                       }}>
                         {getTuningDisplayName(track.tuning_name, apiTunings)}
                       </p>
+                      {track.genres && track.genres.length > 0 && (
+                        <p style={{
+                          margin: '0',
+                          color: '#999',
+                          fontSize: '0.8rem'
+                        }}>
+                          Жанры: {track.genres.map(g => g.name).join(', ')}
+                        </p>
+                      )}
                     </div>
                     <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
                       {token && (
