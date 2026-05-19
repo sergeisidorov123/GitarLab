@@ -38,7 +38,7 @@ const TrackPage = ({ trackId, token, onBack }) => {
   if (loading) {
     return (
       <div className="card">
-        <p>Loading track...</p>
+        <p>Загрузка трека...</p>
       </div>
     );
   }
@@ -47,10 +47,10 @@ const TrackPage = ({ trackId, token, onBack }) => {
     return (
       <div className="card">
         <div className="error-message">
-          <strong>⚠️ Error:</strong> {error}
+          <strong>⚠️ Ошибка:</strong> {error}
         </div>
         <button onClick={onBack} className="btn">
-          ← Back to Library
+          ← Возврат к библиотеке
         </button>
       </div>
     );
@@ -59,9 +59,9 @@ const TrackPage = ({ trackId, token, onBack }) => {
   if (!track) {
     return (
       <div className="card">
-        <p>Track not found</p>
+        <p>Трек не найден</p>
         <button onClick={onBack} className="btn">
-          ← Back to Library
+          ← Возврат к библиотеке
         </button>
       </div>
     );
@@ -78,20 +78,25 @@ const TrackPage = ({ trackId, token, onBack }) => {
           <div>
             <h1 className="card-title" style={{ margin: '0 0 0.5rem 0' }}>{track.title}</h1>
             <p style={{ color: '#666', margin: '0 0 0.5rem 0', fontSize: '1.2rem' }}>
-              by <strong>{track.artist}</strong>
+              от <strong>{track.artist}</strong>
             </p>
-            <p style={{ color: '#999', margin: '0', fontSize: '1rem' }}>
-              Tuning: <strong>{track.tuning_name}</strong>
+            <p style={{ color: '#999', margin: '0 0 0.5rem 0', fontSize: '1rem' }}>
+              Тюнинг: <strong>{track.tuning_name}</strong>
             </p>
+            {track.genres && track.genres.length > 0 && (
+              <p style={{ color: '#777', margin: '0', fontSize: '0.95rem' }}>
+                Жанры: {track.genres.map((genre) => genre.name).join(', ')}
+              </p>
+            )}
           </div>
           <button onClick={onBack} className="btn btn-secondary">
-            ← Back to Library
+            ← Возврат к библиотеке
           </button>
         </div>
 
         {/* Tuning Display */}
         <div style={{ background: '#f9fafb', padding: '1.5rem', borderRadius: '12px', marginBottom: '2rem' }}>
-          <h3 style={{ margin: '0 0 1rem 0', color: '#333' }}>🎸 Tuning Details</h3>
+          <h3 style={{ margin: '0 0 1rem 0', color: '#333' }}>🎸 Детали тюнинга</h3>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(80px, 1fr))', gap: '1rem' }}>
             {track.string_names.map((note, idx) => (
               <div
@@ -114,7 +119,7 @@ const TrackPage = ({ trackId, token, onBack }) => {
                   {track.frequencies[idx].toFixed(1)} Hz
                 </div>
                 <div style={{ fontSize: '0.7rem', opacity: 0.6, marginTop: '0.25rem' }}>
-                  String {idx + 1}
+                  Струна {idx + 1}
                 </div>
               </div>
             ))}
@@ -124,14 +129,14 @@ const TrackPage = ({ trackId, token, onBack }) => {
 
       {/* Tuner Section */}
       <div className="card" style={{ marginBottom: '2rem' }}>
-        <h2 className="card-title">🎵 Guitar Tuner</h2>
+        <h2 className="card-title">🎵 Гитарный тюнер</h2>
         <p className="card-subtitle">
-          Tune your guitar to match this track's tuning
+          Настройте свою гитару в соответствии с тюнингом этого трека
         </p>
 
         {tunerError && (
           <div className="error-message">
-            <strong>⚠️ Tuner Error:</strong> {tunerError}
+            <strong>⚠️ Ошибка тюнера:</strong> {tunerError}
           </div>
         )}
 
@@ -143,12 +148,12 @@ const TrackPage = ({ trackId, token, onBack }) => {
           backgroundColor: '#f9fafb',
           borderRadius: '12px'
         }}>
-          <p style={{ color: '#666', marginBottom: '0.5rem' }}>Currently Tuning:</p>
+          <p style={{ color: '#666', marginBottom: '0.5rem' }}>Сейчас настраивается:</p>
           <p style={{ fontSize: '2.5rem', fontWeight: 'bold', color: '#3b82f6', margin: '0' }}>
             {targetNote}
           </p>
           <p style={{ color: '#888', margin: '0.25rem 0 0 0' }}>
-            {targetFrequency.toFixed(2)} Hz • String {selectedStringIndex + 1}
+            {targetFrequency.toFixed(2)} Гц • Струна {selectedStringIndex + 1}
           </p>
         </div>
 
@@ -156,11 +161,11 @@ const TrackPage = ({ trackId, token, onBack }) => {
         <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
           {!isListening ? (
             <button onClick={start} className="btn">
-              🎤 Start Tuning {targetNote} String
+              🎤 Начать настройку {targetNote}
             </button>
           ) : (
             <button onClick={stop} className="btn btn-danger">
-              ⏹️ Stop Tuning
+              ⏹️ Остановить настройку
             </button>
           )}
         </div>
@@ -213,14 +218,14 @@ const TrackPage = ({ trackId, token, onBack }) => {
                 fontSize: '0.9rem',
                 color: '#666'
               }}>
-                <span>⬇️ Too Low</span>
+                <span>⬇️ Слишком низко</span>
                 <span style={{
                   color: result.is_in_tune ? '#4CAF50' : '#666',
                   fontWeight: result.is_in_tune ? 'bold' : 'normal'
                 }}>
-                  ✓ In Tune
+                  ✓ В тюне
                 </span>
-                <span>⬆️ Too High</span>
+                <span>⬆️ Слишком высоко</span>
               </div>
             </div>
 
@@ -231,11 +236,11 @@ const TrackPage = ({ trackId, token, onBack }) => {
               color: result.is_in_tune ? '#4CAF50' : '#FF9800',
               fontWeight: '600'
             }}>
-              {result.is_in_tune ? '🎯 Perfect!' :
-               result.suggestion === 'up' ? '⬆️ Tune Up' :
-               result.suggestion === 'down' ? '⬇️ Tune Down' :
-               result.suggestion === 'a bit off' ? '🎵 Almost There' :
-               result.suggestion === 'louder' ? '🔊 Play Louder' :
+              {result.is_in_tune ? '🎯 Идеально!' :
+               result.suggestion === 'up' ? '⬆️ Подтянуть' :
+               result.suggestion === 'down' ? '⬇️ Ослабить' :
+               result.suggestion === 'a bit off' ? '🎵 Почти готово' :
+               result.suggestion === 'louder' ? '🔊 Играй громче' :
                result.suggestion}
             </div>
 
@@ -248,7 +253,7 @@ const TrackPage = ({ trackId, token, onBack }) => {
               borderRadius: '8px',
               display: 'inline-block'
             }}>
-              Detected: {result.frequency} Hz | {Math.abs(result.cents)} cents off
+              Обнаружено: {result.frequency} Гц | {Math.abs(result.cents)} центов отклонение
             </div>
           </div>
         )}
@@ -261,9 +266,9 @@ const TrackPage = ({ trackId, token, onBack }) => {
             marginTop: '2rem'
           }}>
             <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>🎸</div>
-            <p>Play the <strong>{targetNote}</strong> string...</p>
+            <p>Играй на струне <strong>{targetNote}</strong>...</p>
             <p style={{ fontSize: '0.9rem', color: '#888' }}>
-              Make sure your microphone is enabled
+              Убедитесь, что ваш микрофон включен и разрешен для этого сайта.
             </p>
           </div>
         )}
@@ -276,7 +281,7 @@ const TrackPage = ({ trackId, token, onBack }) => {
             marginTop: '2rem'
           }}>
             <div style={{ fontSize: '4rem', marginBottom: '1rem', opacity: 0.5 }}>🎸</div>
-            <p>Click "Start Tuning" to begin tuning the {targetNote} string</p>
+            <p>Нажмите "Начать настройку", чтобы настроить струну {targetNote}</p>
           </div>
         )}
       </div>

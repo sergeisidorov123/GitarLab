@@ -36,7 +36,7 @@ const TrackTuner = ({ trackId, token, onBack }) => {
   if (loading) {
     return (
       <div className="card">
-        <p>Loading track...</p>
+        <p>Загрузка трека...</p>
       </div>
     );
   }
@@ -57,9 +57,9 @@ const TrackTuner = ({ trackId, token, onBack }) => {
   if (!track) {
     return (
       <div className="card">
-        <p>Track not found</p>
+        <p>Трек не найден</p>
         <button onClick={onBack} className="btn">
-          ← Back to Library
+          ← Вернуться в библиотеку
         </button>
       </div>
     );
@@ -84,7 +84,7 @@ const TrackTuner = ({ trackId, token, onBack }) => {
       {/* String Selector */}
       <div style={{ marginBottom: '2rem' }}>
         <p style={{ marginBottom: '0.75rem', fontWeight: '500', color: '#333' }}>
-          Select String to Tune:
+          Выберите струну для настройки:
         </p>
         <div style={{
           display: 'grid',
@@ -118,16 +118,16 @@ const TrackTuner = ({ trackId, token, onBack }) => {
           borderRadius: '8px',
           textAlign: 'center'
         }}>
-          <p style={{ color: '#666', marginBottom: '0.25rem' }}>String {selectedStringIndex + 1}:</p>
+          <p style={{ color: '#666', marginBottom: '0.25rem' }}>Струна {selectedStringIndex + 1}:</p>
           <p style={{ fontSize: '1.8rem', fontWeight: 'bold', color: '#3b82f6' }}>
-            {targetNote} - {targetFrequency.toFixed(2)} Hz
+            {targetNote} - {targetFrequency.toFixed(2)} Гц
           </p>
         </div>
       </div>
 
       {tunerError && (
         <div className="error-message">
-          <strong>⚠️ Tuner Error:</strong> {tunerError}
+          <strong>⚠️ Ошибка тюнера:</strong> {tunerError}
         </div>
       )}
 
@@ -135,11 +135,11 @@ const TrackTuner = ({ trackId, token, onBack }) => {
       <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
         {!isListening ? (
           <button onClick={start} className="btn">
-            🎤 Start Tuning String {selectedStringIndex + 1}
+            🎤 Начать настройку струны {selectedStringIndex + 1}
           </button>
         ) : (
           <button onClick={stop} className="btn btn-danger">
-            ⏹️ Stop Tuning
+            ⏹️ Остановить настройку
           </button>
         )}
       </div>
@@ -192,14 +192,14 @@ const TrackTuner = ({ trackId, token, onBack }) => {
               fontSize: '0.9rem',
               color: '#666'
             }}>
-              <span>⬇️ Too Low</span>
+              <span>⬇️ Слишком низко</span>
               <span style={{
                 color: result.is_in_tune ? '#4CAF50' : '#666',
                 fontWeight: result.is_in_tune ? 'bold' : 'normal'
               }}>
-                ✓ In Tune
+                ✓ В тюне
               </span>
-              <span>⬆️ Too High</span>
+              <span>⬆️ Слишком высоко</span>
             </div>
           </div>
 
@@ -210,11 +210,11 @@ const TrackTuner = ({ trackId, token, onBack }) => {
             color: result.is_in_tune ? '#4CAF50' : '#FF9800',
             fontWeight: '600'
           }}>
-            {result.is_in_tune ? '🎯 Perfect!' :
-             result.suggestion === 'up' ? '⬆️ Tune Up' :
-             result.suggestion === 'down' ? '⬇️ Tune Down' :
-             result.suggestion === 'a bit off' ? '🎵 Almost There' :
-             result.suggestion === 'louder' ? '🔊 Play Louder' :
+            {result.is_in_tune ? '🎯 Идеально!' :
+             result.suggestion === 'up' ? '⬆️ Подтянуть' :
+             result.suggestion === 'down' ? '⬇️ Ослабить' :
+             result.suggestion === 'a bit off' ? '🎵 Почти готово' :
+             result.suggestion === 'louder' ? '🔊 Играй громче' :
              result.suggestion}
           </div>
 
@@ -227,7 +227,7 @@ const TrackTuner = ({ trackId, token, onBack }) => {
             borderRadius: '8px',
             display: 'inline-block'
           }}>
-            Detected: {result.frequency} Hz | {Math.abs(result.cents)} cents off
+            Обнаружено: {result.frequency} Гц | {Math.abs(result.cents)} центов отклонение
           </div>
         </div>
       )}
@@ -240,9 +240,9 @@ const TrackTuner = ({ trackId, token, onBack }) => {
           marginTop: '2rem'
         }}>
           <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>🎸</div>
-          <p>Play the <strong>{targetNote}</strong> string...</p>
+          <p>Играй на струне <strong>{targetNote}</strong>...</p>
           <p style={{ fontSize: '0.9rem', color: '#888' }}>
-            Make sure your microphone is enabled
+            Убедитесь, что ваш микрофон включен и разрешен для этого сайта.
           </p>
         </div>
       )}
@@ -255,7 +255,7 @@ const TrackTuner = ({ trackId, token, onBack }) => {
           marginTop: '2rem'
         }}>
           <div style={{ fontSize: '4rem', marginBottom: '1rem', opacity: 0.5 }}>🎸</div>
-          <p>Click "Start Tuning" to begin tuning string {selectedStringIndex + 1}</p>
+          <p>Нажмите "Начать настройку", чтобы настроить струну {selectedStringIndex + 1}</p>
         </div>
       )}
     </div>

@@ -6,25 +6,25 @@ const Tuner = () => {
 
   return (
     <div className="card">
-      <h2 className="card-title">🎸 Guitar Tuner</h2>
+      <h2 className="card-title">🎸 Гитарный тюнер</h2>
       <p className="card-subtitle">
-        Tune your guitar strings with precision
+        Настройте струны вашей гитары с точностью
       </p>
 
       {error && (
         <div className="error-message">
-          <strong>⚠️ Error:</strong> {error}
+          <strong>⚠️ Ошибка:</strong> {error}
         </div>
       )}
 
       <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
         {!isListening ? (
           <button onClick={start} className="btn">
-            🎤 Start Tuning
+            🎤 Старт 
           </button>
         ) : (
           <button onClick={stop} className="btn btn-danger">
-            ⏹️ Stop Tuning
+            ⏹️ Остановить тюнинг
           </button>
         )}
       </div>
@@ -85,14 +85,14 @@ const Tuner = () => {
               fontSize: '0.9rem',
               color: '#666'
             }}>
-              <span>⬇️ Too Low</span>
+              <span>⬇️ Слишком низко</span>
               <span style={{
                 color: result.is_in_tune ? '#4CAF50' : '#666',
                 fontWeight: result.is_in_tune ? 'bold' : 'normal'
               }}>
-                ✓ In Tune
+                ✓ В тюне
               </span>
-              <span>⬆️ Too High</span>
+              <span>⬆️ Слишком высоко</span>
             </div>
           </div>
 
@@ -133,7 +133,7 @@ const Tuner = () => {
           <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>🎸</div>
           <p>Play a note on your guitar...</p>
           <p style={{ fontSize: '0.9rem', color: '#888' }}>
-            Make sure your microphone is enabled
+            Убедитесь, что ваш микрофон включен и разрешен для этого сайта.
           </p>
         </div>
       )}
