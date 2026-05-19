@@ -3,6 +3,8 @@ from sqlalchemy.orm import Session
 from sqlalchemy import and_
 from app.repos.track_repos import TrackRepository
 from app.repos.favorite_repos import FavoriteRepository
+from app.repos.genre_repos import GenreRepository
+from app.repos.track_genre_repos import TrackGenreRepository
 from app.models.user import User
 from app.models.track import Track
 from app.schemas.track import TrackCreate
@@ -12,7 +14,23 @@ class TrackService:
     def __init__(self, db: Session):
         self.track_repo = TrackRepository(db)
         self.favorite_repo = FavoriteRepository(db)
+        self.genre_repo = GenreRepository(db)
+        self.track_genre_repo = TrackGenreRepository(db)
         self.db = db
+
+    def _process_genres(self, track_id: str, genre_names: List[str] | None):
+        """Process genre names and create/link genres to track."""
+        if not genre_names:
+            return
+        
+        # Get or create genres and collect their IDs
+        genre_ids = []
+        for genre_name in genre_names:
+            genre = self.genre_repo.get_or_create(genre_name.strip())
+            genre_ids.append(genre.id)
+        
+        # Set the track's genres
+        self.track_genre_repo.set_track_genres(track_id, genre_ids)
 
     def create_track(self, user: User, payload: TrackCreate):
         existing = self.db.query(Track).filter(
@@ -24,7 +42,8 @@ class TrackService:
         ).first()
         if existing:
             raise ValueError(f"Track '{payload.title}' by '{payload.artist}' already exists in your library")
-        return self.track_repo.create(
+        
+        track = self.track_repo.create(
             owner_id=user.id,
             title=payload.title,
             artist=payload.artist,
@@ -32,6 +51,14 @@ class TrackService:
             string_names=payload.string_names,
             frequencies=payload.frequencies,
         )
+        
+        # Process genres if provided
+        if payload.genre_names:
+            self._process_genres(track.id, payload.genre_names)
+            # Refresh to load genres
+            self.db.refresh(track)
+        
+        return track
 
     def list_tracks(self, search: str | None = None):
         return self.track_repo.list_all(search)
@@ -75,6 +102,11 @@ class TrackService:
         track.string_names = payload.string_names
         track.frequencies = payload.frequencies
         self.track_repo.db.commit()
+        
+        # Process genres if provided
+        if payload.genre_names:
+            self._process_genres(track_id, payload.genre_names)
+        
         self.track_repo.db.refresh(track)
         return track
 

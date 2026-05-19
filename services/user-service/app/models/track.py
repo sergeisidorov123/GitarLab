@@ -19,3 +19,4 @@ class Track(Base):
 
     owner = relationship("User", back_populates="tracks")
     favorites = relationship("Favorite", back_populates="track")
+    genres = relationship("TrackGenre", back_populates="track", cascade="all, delete-orphan")
