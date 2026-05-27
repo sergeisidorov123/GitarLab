@@ -131,7 +131,6 @@ const Tuner = () => {
           marginTop: '2rem'
         }}>
           <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>🎸</div>
-          <p>Play a note on your guitar...</p>
           <p style={{ fontSize: '0.9rem', color: '#888' }}>
             Убедитесь, что ваш микрофон включен и разрешен для этого сайта.
           </p>
@@ -146,7 +145,6 @@ const Tuner = () => {
           marginTop: '2rem'
         }}>
           <div style={{ fontSize: '4rem', marginBottom: '1rem', opacity: 0.5 }}>🎸</div>
-          <p>Click "Start Tuning" to begin tuning your guitar</p>
         </div>
       )}
     </div>

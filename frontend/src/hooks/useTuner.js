@@ -56,7 +56,7 @@ export const useTuner = () => {
       await audioContext.resume();
       
     } catch (err) {
-      setError('Cannot access microphone');
+      setError('Нет доступа к микрофону');
       console.error(err);
     }
   }, []);

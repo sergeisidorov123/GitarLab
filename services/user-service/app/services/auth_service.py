@@ -16,7 +16,7 @@ class AuthService:
 
     def register(self, username: str, password: str) -> User:
         if self.repo.get_by_username(username):
-            raise ValueError("Username already exists")
+            raise ValueError("Пользователь с таким именем уже зарегистрирован")
 
         password_hash = hash_password(password)
         user_role = self._ensure_role("user")
@@ -25,7 +25,7 @@ class AuthService:
     def login(self, username: str, password: str) -> str:
         user = self.repo.get_by_username(username)
         if not user or not verify_password(password, user.password_hash):
-            raise ValueError("Invalid username or password")
+            raise ValueError("Неправильный логин или пароль")
 
         token = create_access_token()
         self.repo.create_token(user.id, token)

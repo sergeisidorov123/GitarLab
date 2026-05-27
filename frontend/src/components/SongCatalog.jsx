@@ -96,7 +96,7 @@ const SongCatalog = () => {
                   {song.title}
                 </h3>
                 <p style={{ margin: '0', color: '#666', fontSize: '0.9rem' }}>
-                  by {song.artist}
+                  от {song.artist}
                 </p>
               </div>
             ))}
@@ -113,7 +113,7 @@ const SongCatalog = () => {
               {selectedSong.title}
             </h3>
             <p style={{ color: '#666', margin: '0 0 1rem 0', fontSize: '1.1rem' }}>
-              by {selectedSong.artist}
+              от {selectedSong.artist}
             </p>
           </div>
 
