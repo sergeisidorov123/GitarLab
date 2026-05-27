@@ -1,0 +1,16 @@
+FROM node:18-alpine
+
+WORKDIR /app
+
+# Копируем package.json отдельно для кэширования слоёв
+COPY package.json package-lock.json* ./
+RUN npm install
+
+# Копируем исходники
+COPY . .
+
+# Открываем порт React dev-сервера
+EXPOSE 3000
+
+# Запускаем в режиме разработки с hot-reload
+CMD ["npm", "start"]
