@@ -102,11 +102,11 @@ const Tuner = () => {
             color: result.is_in_tune ? '#4CAF50' : '#FF9800',
             fontWeight: '600'
           }}>
-            {result.suggestion === 'good' ? '🎯 Perfect!' :
-             result.suggestion === 'up' ? '⬆️ Tune Up' :
-             result.suggestion === 'down' ? '⬇️ Tune Down' :
-             result.suggestion === 'a bit off' ? '🎵 Almost There' :
-             result.suggestion === 'louder' ? '🔊 Play Louder' :
+            {result.suggestion === 'good' ? '🎯 Идеально!' :
+             result.suggestion === 'up' ? '⬆️ Подтянуть струну' :
+             result.suggestion === 'down' ? '⬇️ Спустить струну' :
+             result.suggestion === 'a bit off' ? '🎵 Почти настроена' :
+             result.suggestion === 'louder' ? '🔊 Играть громче' :
              result.suggestion}
           </div>
 
