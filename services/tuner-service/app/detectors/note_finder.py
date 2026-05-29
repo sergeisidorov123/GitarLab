@@ -25,16 +25,17 @@ class NoteFinder:
         
         midi_note = 12 * np.log2(freq / 440) + 69
         midi_rounded = int(round(midi_note))
-        
-        if midi_rounded < 40 or midi_rounded > 88:
+
+        # Allow a bit wider range to cover open / alternate tunings
+        if midi_rounded < 28 or midi_rounded > 96:
             return None, 0
 
         exact_freq = 440 * (2 ** ((midi_rounded - 69) / 12))
-        cents = int(1200 * np.log2(freq / exact_freq))
-        
+        cents = int(round(1200 * np.log2(freq / exact_freq)))
+
         note_name = cls.NOTE_NAMES[midi_rounded % 12]
         octave = midi_rounded // 12 - 1
-        
+
         return f"{note_name}{octave}", cents
     
     @classmethod
@@ -49,16 +50,23 @@ class NoteFinder:
             'E4 (1st)': 329.63
         }
         
+        # Choose string by smallest cents difference (allowing octave mismatches)
         closest = None
-        min_diff = float('inf')
-        
+        best_cents = float('inf')
+
         for name, str_freq in strings.items():
-            diff = abs(freq - str_freq)
-            if diff < min_diff and diff < 10:  
-                min_diff = diff
-                closest = name
-        
-        return closest
+            # check several octave shifts to allow octave errors
+            for shift in (-1, 0, 1):
+                cand = str_freq * (2 ** shift)
+                if cand <= 0:
+                    continue
+                cents = abs(1200 * np.log2(freq / cand)) if cand > 0 else float('inf')
+                if cents < best_cents:
+                    best_cents = cents
+                    closest = name
+
+        # require reasonably close (<= 150 cents ~ 1.5 semitones)
+        return closest if best_cents <= 150 else None
     
     @classmethod
     def find_closest_string_and_cents(cls, freq: float) -> Tuple[Optional[str], float, int]:
@@ -79,7 +87,7 @@ class NoteFinder:
         
         closest_string = None
         closest_freq = 0.0
-        min_score = float('inf')
+        best_score = float('inf')
         best_cents = 0
 
         for string_name, target_freq in strings:
@@ -88,16 +96,19 @@ class NoteFinder:
                 if harmonic_freq <= 0:
                     continue
 
-                cents_to_harmonic = 1200 * np.log2(freq / harmonic_freq)
-                score = abs(cents_to_harmonic) + (harmonic - 1) * 20
+                cents_to_harmonic = abs(1200 * np.log2(freq / harmonic_freq))
+                # penalize higher harmonics more strongly
+                score = cents_to_harmonic + (harmonic - 1) * 50
 
-                if score < min_score:
-                    min_score = score
+                if score < best_score:
+                    best_score = score
                     closest_string = string_name
                     closest_freq = target_freq
-                    best_cents = int(1200 * np.log2(freq / closest_freq))
+                    # cents relative to the fundamental (not harmonic)
+                    best_cents = int(round(1200 * np.log2(freq / closest_freq)))
 
-        if closest_string and min_score < 80:
+        # Accept only if score is not too large (loose threshold for robustness)
+        if closest_string and best_score < 300:
             return closest_string, closest_freq, best_cents
 
         return None, 0.0, 0

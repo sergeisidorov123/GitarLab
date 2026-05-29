@@ -52,6 +52,7 @@ async def websocket_tuner(websocket: WebSocket):
             frequency, is_silence = detector.detect(audio_data)
             
             if is_silence or frequency == 0:
+                detector.reset_history()
                 await manager.send_message(client_id, {
                     "type": "tuning",
                     "frequency": 0,
